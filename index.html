@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Моят Чат</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    .chat-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+  </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+
+  <div class="flex h-screen">
+    <!-- Sidebar (чатове) -->
+    <div class="w-80 border-r border-gray-800 bg-gray-900 flex flex-col">
+      <div class="p-4 border-b border-gray-800 flex items-center gap-3">
+        <i class="fas fa-comments text-2xl text-blue-500"></i>
+        <h1 class="text-xl font-bold">Съобщения</h1>
+      </div>
+      
+      <div class="p-3">
+        <input type="text" id="search" placeholder="Търси..." 
+               class="w-full bg-gray-800 rounded-full py-2 px-4 text-sm focus:outline-none">
+      </div>
+
+      <div class="flex-1 overflow-y-auto" id="chat-list">
+        <!-- Чатове ще се добавят тук -->
+      </div>
+    </div>
+
+    <!-- Основен чат -->
+    <div class="flex-1 flex flex-col">
+      <div class="p-4 border-b border-gray-800 flex items-center gap-3 bg-gray-900">
+        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-xl">
+          👥
+        </div>
+        <div>
+          <h2 class="font-semibold" id="chat-name">Приятелска група</h2>
+          <p class="text-xs text-green-500">Онлайн</p>
+        </div>
+      </div>
+
+      <div id="messages" class="flex-1 p-4 overflow-y-auto bg-gray-950 space-y-4">
+        <!-- Съобщенията ще се показват тук -->
+      </div>
+
+      <div class="p-4 bg-gray-900 border-t border-gray-800">
+        <div class="flex gap-2">
+          <input type="text" id="message-input" 
+                 class="flex-1 bg-gray-800 rounded-full px-5 py-3 focus:outline-none"
+                 placeholder="Напиши съобщение...">
+          <button onclick="sendMessage()" 
+                  class="bg-blue-600 hover:bg-blue-700 px-6 rounded-full">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = prompt("Въведи твоето име:", "Аз") || "Аз";
+
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('message-input');
+
+    function addMessage(text, isMine) {
+      const msg = document.createElement('div');
+      msg.className = `flex ${isMine ? 'justify-end' : 'justify-start'}`;
+      msg.innerHTML = `
+        <div class="${isMine ? 'bg-blue-600' : 'bg-gray-700'} max-w-xs px-4 py-2.5 rounded-2xl rounded-${isMine ? 'tr' : 'tl'}-none">
+          <p>${text}</p>
+          <p class="text-[10px] text-gray-300 text-right mt-1">${new Date().toLocaleTimeString('bg-BG', {hour:'2-digit', minute:'2-digit'})}</p>
+        </div>
+      `;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function sendMessage() {
+      if (input.value.trim() === '') return;
+      
+      addMessage(input.value, true);
+      
+      // Симулация на отговор от другия
+      setTimeout(() => {
+        const replies = ["Хаха точно!", "Разбрах", "Добре 👍", "Кога се виждаме?", "Якооо"];
+        addMessage(replies[Math.floor(Math.random()*replies.length)], false);
+      }, 800);
+
+      input.value = '';
+    }
+
+    // Enter за изпращане
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    // Стартово съобщение
+    setTimeout(() => {
+      addMessage("Здравей! Как си?", false);
+    }, 600);
+  </script>
+</body>
+</html>
