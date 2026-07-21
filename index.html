@@ -35,15 +35,16 @@
 
       <div class="p-4 bg-gray-900 border-t border-gray-800">
         <div class="flex gap-2">
-  <input type="text" id="username" value="Аз" class="w-32 ...">
-  <input type="text" id="message-input" class="flex-1 ..." placeholder="Напиши съобщение...">
-  
-  <button onclick="uploadImage()" class="bg-gray-700 hover:bg-gray-600 px-4 rounded-full">
-    📷
-  </button>
-  
-  <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 px-8 rounded-full">Изпрати</button>
-</div>
+          <input type="text" id="username" value="Аз" 
+                 class="w-32 bg-gray-800 rounded-full px-4 py-3 text-sm focus:outline-none">
+          <input type="text" id="message-input" 
+                 class="flex-1 bg-gray-800 rounded-full px-5 py-3 focus:outline-none"
+                 placeholder="Напиши съобщение...">
+          <button onclick="sendMessage()" 
+                  class="bg-blue-600 hover:bg-blue-700 px-8 rounded-full font-medium">
+            Изпрати
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -62,92 +63,64 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const messagesRef = db.ref('messages');
-    const storage = firebase.storage();
 
     const messagesDiv = document.getElementById('messages');
     const input = document.getElementById('message-input');
     const usernameInput = document.getElementById('username');
 
-    function addMessage(snapshot) {
-      const data = snapshot.val();
-      const messageId = snapshot.key;
-      if (!data) return;
+    // Listen for new messages
+    messagesRef.on('child_added', (snapshot) => {
+      console.log("Ново съобщение получено:", snapshot.val()); // за debug
+      addMessage(snapshot.val());
+    });
 
+    function addMessage(data) {
+      if (!data || !data.username || !data.text) return;
+      
       const isMine = data.username === usernameInput.value;
 
-      let content = '';
-      if (data.imageUrl) {
-        content = `<img src="${data.imageUrl}" class="max-w-xs rounded-xl mt-2 cursor-pointer" onclick="window.open('${data.imageUrl}', '_blank')">`;
-      } else if (data.text) {
-        content = `<p class="mt-1">${data.text}</p>`;
-      }
-
       const msg = document.createElement('div');
-      msg.className = `flex ${isMine ? 'justify-end' : 'justify-start'} group`;
+      msg.className = `flex ${isMine ? 'justify-end' : 'justify-start'}`;
       msg.innerHTML = `
-        <div class="${isMine ? 'bg-blue-600' : 'bg-gray-700'} max-w-md px-4 py-3 rounded-2xl rounded-${isMine ? 'tr' : 'tl'}-none relative">
+        <div class="${isMine ? 'bg-blue-600' : 'bg-gray-700'} max-w-md px-4 py-3 rounded-2xl rounded-${isMine ? 'tr' : 'tl'}-none">
           <p class="text-xs opacity-75">${data.username}</p>
-          ${content}
+          <p class="mt-1">${data.text}</p>
           <p class="text-[10px] text-right mt-1 opacity-60">${new Date(data.timestamp).toLocaleTimeString('bg-BG', {hour:'2-digit', minute:'2-digit'})}</p>
-          
-          ${isMine ? `
-          <button onclick="deleteMessage('${messageId}')" 
-                  class="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white text-xs w-5 h-5 rounded-full hidden group-hover:flex items-center justify-center">
-            ✕
-          </button>` : ''}
         </div>
       `;
       messagesDiv.appendChild(msg);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
-    messagesRef.on('child_added', (snapshot) => addMessage(snapshot));
-
     function sendMessage() {
       const text = input.value.trim();
-      if (text) {
-        messagesRef.push({
-          username: usernameInput.value || "Анонимен",
-          text: text,
-          timestamp: Date.now()
-        });
-        input.value = '';
-      }
-    }
+      if (!text) return;
 
-    // Качване на снимка
-    window.uploadImage = function() {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = e => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const storageRef = storage.ref('chat-images/' + Date.now() + '-' + file.name);
-        
-        storageRef.put(file).then(snapshot => {
-          snapshot.ref.getDownloadURL().then(url => {
-            messagesRef.push({
-              username: usernameInput.value || "Анонимен",
-              imageUrl: url,
-              timestamp: Date.now()
-            });
-          });
-        });
+      const messageData = {
+        username: usernameInput.value || "Анонимен",
+        text: text,
+        timestamp: Date.now()
       };
-      input.click();
-    };
 
-    window.deleteMessage = function(messageId) {
-      if (confirm("Изтрий съобщението?")) {
-        db.ref('messages/' + messageId).remove();
-      }
-    };
+      console.log("Изпращам:", messageData); // debug
+
+      messagesRef.push(messageData)
+        .then(() => {
+          console.log("Съобщението е изпратено успешно");
+          input.value = '';
+        })
+        .catch((error) => {
+          console.error("Грешка при изпращане:", error);
+          alert("Грешка при изпращане: " + error.message);
+        });
+    }
 
     input.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') sendMessage();
     });
+
+    // Първоначално зареждане
+    console.log("Чатът е инициализиран");
   </script>
 </body>
 </html>
