@@ -50,15 +50,14 @@
   </div>
 
   <script>
-    // === ПОСТАВИ ТУК firebaseConfig ===
     const firebaseConfig = {
-  apiKey: "AIzaSyDXBkRNIxckOGfdZcJuaAx-xA4r78bkitQ",
-  authDomain: "pi-chat-85f23.firebaseapp.com",
-  databaseURL: "https://pi-chat-85f23-default-rtdb.firebaseio.com",
-  projectId: "pi-chat-85f23",
-  storageBucket: "pi-chat-85f23.firebasestorage.app",
-  messagingSenderId: "427213769208",
-  appId: "1:427213769208:web:aa3b0ecbbf5840cbfd6e0d"
+      apiKey: "AIzaSyDXBkRNIxckOGfdZcJuaAx-xA4r78bkitQ",
+      authDomain: "pi-chat-85f23.firebaseapp.com",
+      databaseURL: "https://pi-chat-85f23-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "pi-chat-85f23",
+      storageBucket: "pi-chat-85f23.firebasestorage.app",
+      messagingSenderId: "427213769208",
+      appId: "1:427213769208:web:aa3b0ecbbf5840cbfd6e0d"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -69,44 +68,59 @@
     const input = document.getElementById('message-input');
     const usernameInput = document.getElementById('username');
 
+    // Listen for new messages
+    messagesRef.on('child_added', (snapshot) => {
+      console.log("Ново съобщение получено:", snapshot.val()); // за debug
+      addMessage(snapshot.val());
+    });
+
     function addMessage(data) {
-      const { username, text, timestamp } = data;
-      const isMine = username === usernameInput.value;
+      if (!data || !data.username || !data.text) return;
+      
+      const isMine = data.username === usernameInput.value;
 
       const msg = document.createElement('div');
       msg.className = `flex ${isMine ? 'justify-end' : 'justify-start'}`;
       msg.innerHTML = `
         <div class="${isMine ? 'bg-blue-600' : 'bg-gray-700'} max-w-md px-4 py-3 rounded-2xl rounded-${isMine ? 'tr' : 'tl'}-none">
-          <p class="text-xs opacity-75">${username}</p>
-          <p class="mt-1">${text}</p>
-          <p class="text-[10px] text-right mt-1 opacity-60">${new Date(timestamp).toLocaleTimeString('bg-BG', {hour:'2-digit', minute:'2-digit'})}</p>
+          <p class="text-xs opacity-75">${data.username}</p>
+          <p class="mt-1">${data.text}</p>
+          <p class="text-[10px] text-right mt-1 opacity-60">${new Date(data.timestamp).toLocaleTimeString('bg-BG', {hour:'2-digit', minute:'2-digit'})}</p>
         </div>
       `;
       messagesDiv.appendChild(msg);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
-    // Listen for new messages
-    messagesRef.on('child_added', (snapshot) => {
-      addMessage(snapshot.val());
-    });
-
     function sendMessage() {
       const text = input.value.trim();
       if (!text) return;
 
-      messagesRef.push({
+      const messageData = {
         username: usernameInput.value || "Анонимен",
         text: text,
         timestamp: Date.now()
-      });
+      };
 
-      input.value = '';
+      console.log("Изпращам:", messageData); // debug
+
+      messagesRef.push(messageData)
+        .then(() => {
+          console.log("Съобщението е изпратено успешно");
+          input.value = '';
+        })
+        .catch((error) => {
+          console.error("Грешка при изпращане:", error);
+          alert("Грешка при изпращане: " + error.message);
+        });
     }
 
     input.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') sendMessage();
     });
+
+    // Първоначално зареждане
+    console.log("Чатът е инициализиран");
   </script>
 </body>
 </html>
