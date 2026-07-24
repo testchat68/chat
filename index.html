@@ -44,24 +44,27 @@
       
       <!-- Долна лента -->
       <div class="p-4 bg-gray-900 border-t border-gray-800 relative">
-        <div id="emoji-panel" class="hidden absolute bottom-20 left-4 right-4 bg-gray-800 rounded-2xl p-3 shadow-xl border border-gray-700 grid grid-cols-5 gap-2 max-h-52 overflow-y-auto z-50"></div>
+  <div id="emoji-panel" class="hidden absolute bottom-20 left-4 right-4 bg-gray-800 rounded-2xl p-3 shadow-xl border border-gray-700 grid grid-cols-5 gap-2 max-h-52 overflow-y-auto z-50"></div>
 
-        <div class="flex gap-2 items-center">
-          <button id="emoji-btn" 
-                  class="bg-gray-800 hover:bg-gray-700 w-12 h-12 rounded-full flex items-center justify-center text-xl flex-shrink-0">
-            😊
-          </button>
+  <div class="flex gap-2 items-center">
+    <!-- Емоджи бутон -->
+    <button id="emoji-btn" 
+            class="bg-gray-800 hover:bg-gray-700 w-12 h-12 rounded-full flex items-center justify-center text-xl flex-shrink-0">
+      😊
+    </button>
 
-          <input type="text" id="message-input"
-                 class="flex-1 bg-gray-800 rounded-full px-5 py-3 focus:outline-none"
-                 placeholder="Напиши съобщение...">
-          
-          <button onclick="sendMessage()"
-                  class="bg-blue-600 hover:bg-blue-700 px-5 rounded-full font-medium flex-shrink-0">
-            Изпрати
-          </button>
-        </div>
-      </div>
+    <!-- Поле за писане -->
+    <input type="text" id="message-input"
+           class="flex-1 bg-gray-800 rounded-full px-5 py-3 focus:outline-none"
+           placeholder="Напиши съобщение...">
+    
+    <!-- Кръгъл бутон със стрелка (Telegram стил) -->
+    <button onclick="sendMessage()"
+            class="bg-blue-600 hover:bg-blue-700 w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
+      <i class="fas fa-paper-plane text-white text-lg"></i>
+    </button>
+  </div>
+</div>
     </div>
   </div>
 
