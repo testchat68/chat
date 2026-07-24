@@ -75,6 +75,17 @@
     const input = document.getElementById('message-input');
     const usernameInput = document.getElementById('username');
 
+    // Функция за форматиране на датата: 31-JAN; 22:38
+    function formatDate(timestamp) {
+      const date = new Date(timestamp);
+      const day = String(date.getDate()).padStart(2, '0');
+      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      const month = months[date.getMonth()];
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${day}-${month}; ${hours}:${minutes}`;
+    }
+
     // Нови съобщения
     messagesRef.on('child_added', (snapshot) => {
       addMessage(snapshot.key, snapshot.val());
@@ -99,7 +110,7 @@
           <p class="text-xs opacity-75">${data.username}</p>
           <p class="mt-1">${data.text}</p>
           <div class="flex items-center justify-between mt-1">
-            <p class="text-[10px] opacity-60">${new Date(data.timestamp).toLocaleTimeString('bg-BG', {hour:'2-digit', minute:'2-digit'})}</p>
+            <p class="text-[10px] opacity-60">${formatDate(data.timestamp)}</p>
             ${isMine ? `
               <button onclick="deleteMessage('${key}')" 
                       class="ml-3 text-xs opacity-0 group-hover:opacity-100 transition-opacity text-red-300 hover:text-red-100"
