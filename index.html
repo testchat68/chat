@@ -10,8 +10,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body class="bg-gray-950 text-white min-h-screen">
-
   <div class="flex h-screen">
+    <!-- Лява лента -->
     <div class="w-80 border-r border-gray-800 bg-gray-900 flex flex-col">
       <div class="p-4 border-b border-gray-800 flex items-center gap-3 bg-gray-900">
         <i class="fas fa-comments text-2xl text-blue-500"></i>
@@ -20,8 +20,18 @@
       <div class="p-4 text-center text-gray-400 text-sm">
         Всички са в една обща чат стая
       </div>
+
+      <!-- Бутон за изчистване на всички -->
+      <div class="mt-auto p-4">
+        <button onclick="clearAllMessages()" 
+                class="w-full bg-red-700 hover:bg-red-800 text-white py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2">
+          <i class="fas fa-trash-alt"></i>
+          Изчисти всички съобщения
+        </button>
+      </div>
     </div>
 
+    <!-- Чат част -->
     <div class="flex-1 flex flex-col">
       <div class="p-4 border-b border-gray-800 flex items-center gap-3 bg-gray-900">
         <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-2xl">💬</div>
@@ -30,17 +40,15 @@
           <p class="text-xs text-green-500">Онлайн чат</p>
         </div>
       </div>
-
       <div id="messages" class="flex-1 p-4 overflow-y-auto bg-gray-950 space-y-4"></div>
-
       <div class="p-4 bg-gray-900 border-t border-gray-800">
         <div class="flex gap-2">
-          <input type="text" id="username" value="Аз" 
+          <input type="text" id="username" value="Аз"
                  class="w-32 bg-gray-800 rounded-full px-4 py-3 text-sm focus:outline-none">
-          <input type="text" id="message-input" 
+          <input type="text" id="message-input"
                  class="flex-1 bg-gray-800 rounded-full px-5 py-3 focus:outline-none"
                  placeholder="Напиши съобщение...">
-          <button onclick="sendMessage()" 
+          <button onclick="sendMessage()"
                   class="bg-blue-600 hover:bg-blue-700 px-8 rounded-full font-medium">
             Изпрати
           </button>
@@ -63,33 +71,69 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const messagesRef = db.ref('messages');
-
     const messagesDiv = document.getElementById('messages');
     const input = document.getElementById('message-input');
     const usernameInput = document.getElementById('username');
 
-    // Listen for new messages
+    // Нови съобщения
     messagesRef.on('child_added', (snapshot) => {
-      console.log("Ново съобщение получено:", snapshot.val()); // за debug
-      addMessage(snapshot.val());
+      addMessage(snapshot.key, snapshot.val());
     });
 
-    function addMessage(data) {
-      if (!data || !data.username || !data.text) return;
-      
-      const isMine = data.username === usernameInput.value;
+    // Изтриване на отделно съобщение
+    messagesRef.on('child_removed', (snapshot) => {
+      const el = document.getElementById('msg-' + snapshot.key);
+      if (el) el.remove();
+    });
 
+    function addMessage(key, data) {
+      if (!data || !data.username || !data.text) return;
+
+      const isMine = data.username === usernameInput.value;
       const msg = document.createElement('div');
+      msg.id = 'msg-' + key;
       msg.className = `flex ${isMine ? 'justify-end' : 'justify-start'}`;
+
       msg.innerHTML = `
-        <div class="${isMine ? 'bg-blue-600' : 'bg-gray-700'} max-w-md px-4 py-3 rounded-2xl rounded-${isMine ? 'tr' : 'tl'}-none">
+        <div class="relative group ${isMine ? 'bg-blue-600' : 'bg-gray-700'} max-w-md px-4 py-3 rounded-2xl rounded-${isMine ? 'tr' : 'tl'}-none">
           <p class="text-xs opacity-75">${data.username}</p>
           <p class="mt-1">${data.text}</p>
-          <p class="text-[10px] text-right mt-1 opacity-60">${new Date(data.timestamp).toLocaleTimeString('bg-BG', {hour:'2-digit', minute:'2-digit'})}</p>
+          <div class="flex items-center justify-between mt-1">
+            <p class="text-[10px] opacity-60">${new Date(data.timestamp).toLocaleTimeString('bg-BG', {hour:'2-digit', minute:'2-digit'})}</p>
+            ${isMine ? `
+              <button onclick="deleteMessage('${key}')" 
+                      class="ml-3 text-xs opacity-0 group-hover:opacity-100 transition-opacity text-red-300 hover:text-red-100"
+                      title="Изтрий">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            ` : ''}
+          </div>
         </div>
       `;
       messagesDiv.appendChild(msg);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function deleteMessage(key) {
+      if (!confirm('Сигурен ли си, че искаш да изтриеш това съобщение?')) return;
+      
+      messagesRef.child(key).remove()
+        .catch((error) => {
+          alert('Грешка при изтриване: ' + error.message);
+        });
+    }
+
+    // Изчистване на ВСИЧКИ съобщения
+    function clearAllMessages() {
+      if (!confirm('Сигурен ли си?\nТова ще изтрие ВСИЧКИ съобщения завинаги!')) return;
+
+      messagesRef.remove()
+        .then(() => {
+          console.log('Всички съобщения са изтрити');
+        })
+        .catch((error) => {
+          alert('Грешка: ' + error.message);
+        });
     }
 
     function sendMessage() {
@@ -102,15 +146,11 @@
         timestamp: Date.now()
       };
 
-      console.log("Изпращам:", messageData); // debug
-
       messagesRef.push(messageData)
         .then(() => {
-          console.log("Съобщението е изпратено успешно");
           input.value = '';
         })
         .catch((error) => {
-          console.error("Грешка при изпращане:", error);
           alert("Грешка при изпращане: " + error.message);
         });
     }
@@ -118,9 +158,6 @@
     input.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') sendMessage();
     });
-
-    // Първоначално зареждане
-    console.log("Чатът е инициализиран");
   </script>
 </body>
 </html>
