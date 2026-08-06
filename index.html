@@ -4,34 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Моят Чат</title>
+
+<!-- Цветна икона за bookmark toolbar -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%233B82F6'/><text x='50' y='68' font-size='55' text-anchor='middle' fill='white'>💬</text></svg>">
+
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 </head>
 <body class="bg-gray-950 text-white min-h-screen">
-
-  <!-- ЕКРАН ЗА ВХОД -->
-  <div id="login-screen" class="fixed inset-0 bg-gray-950 flex items-center justify-center z-50">
-    <div class="text-center p-8 max-w-md w-full">
-      <div class="text-6xl mb-6">💬</div>
-      <h1 class="text-3xl font-bold mb-2">Семеен Чат</h1>
-      <p class="text-gray-400 mb-8">Влез с твоя Google акаунт</p>
-      
-      <button onclick="loginWithGoogle()"
-              class="bg-white text-gray-900 hover:bg-gray-100 font-medium py-3 px-6 rounded-full flex items-center justify-center gap-3 mx-auto transition">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6" alt="Google">
-        Вход с Google
-      </button>
-    </div>
-  </div>
-
-  <!-- ОСНОВЕН ЧАТ -->
-  <div id="chat-screen" class="hidden flex h-screen w-full overflow-hidden">
-   
-    <!-- Лява лента -->
+  <div class="flex h-screen w-full overflow-hidden">
+    
+    <!-- Лява лента (скрита на телефон) -->
     <div class="hidden md:flex w-80 border-r border-gray-800 bg-gray-900 flex-col">
       <div class="p-4 border-b border-gray-800 flex items-center gap-3 bg-gray-900">
         <i class="fas fa-comments text-2xl text-blue-500"></i>
@@ -40,14 +25,8 @@
       <div class="p-4 text-center text-gray-400 text-sm">
         Всички са в една обща чат стая
       </div>
-      <div class="mt-auto p-4 space-y-3">
-        <div id="user-info" class="text-sm text-gray-400 text-center mb-2"></div>
-        <button onclick="logout()"
-                class="w-full bg-gray-700 hover:bg-gray-600 text-white py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2">
-          <i class="fas fa-sign-out-alt"></i>
-          Изход
-        </button>
-        <button onclick="clearAllMessages()"
+      <div class="mt-auto p-4">
+        <button onclick="clearAllMessages()" 
                 class="w-full bg-red-700 hover:bg-red-800 text-white py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2">
           <i class="fas fa-trash-alt"></i>
           Изчисти всички съобщения
@@ -57,37 +36,39 @@
 
     <!-- Чат част -->
     <div class="flex-1 flex flex-col w-full min-w-0">
-      <div class="p-4 border-b border-gray-800 flex items-center justify-between bg-gray-900">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-2xl">💬</div>
-          <div>
-            <h2 class="font-semibold">Обща чат стая</h2>
-            <p class="text-xs text-green-500">Онлайн чат</p>
-          </div>
+      <div class="p-4 border-b border-gray-800 flex items-center gap-3 bg-gray-900">
+        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-2xl">💬</div>
+        <div>
+          <h2 class="font-semibold">Обща чат стая</h2>
+          <p class="text-xs text-green-500">Онлайн чат</p>
         </div>
-        <button onclick="logout()" class="md:hidden bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-sm">
-          <i class="fas fa-sign-out-alt"></i>
-        </button>
       </div>
 
       <div id="messages" class="flex-1 p-4 overflow-y-auto bg-gray-950 space-y-4"></div>
-     
+      
+      <!-- Долна лента -->
       <div class="p-4 bg-gray-900 border-t border-gray-800 relative">
-        <div id="emoji-panel" class="hidden absolute bottom-20 left-4 right-4 bg-gray-800 rounded-2xl p-3 shadow-xl border border-gray-700 grid grid-cols-5 gap-2 max-h-52 overflow-y-auto z-50"></div>
-        <div class="flex gap-2 items-center">
-          <button id="emoji-btn"
-                  class="bg-gray-800 hover:bg-gray-700 w-12 h-12 rounded-full flex items-center justify-center text-xl flex-shrink-0">
-            😊
-          </button>
-          <input type="text" id="message-input"
-                 class="flex-1 bg-gray-800 rounded-full px-5 py-3 focus:outline-none"
-                 placeholder="Напиши съобщение...">
-          <button onclick="sendMessage()"
-                  class="bg-blue-600 hover:bg-blue-700 w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-paper-plane text-white text-lg"></i>
-          </button>
-        </div>
-      </div>
+  <div id="emoji-panel" class="hidden absolute bottom-20 left-4 right-4 bg-gray-800 rounded-2xl p-3 shadow-xl border border-gray-700 grid grid-cols-5 gap-2 max-h-52 overflow-y-auto z-50"></div>
+
+  <div class="flex gap-2 items-center">
+    <!-- Емоджи бутон -->
+    <button id="emoji-btn" 
+            class="bg-gray-800 hover:bg-gray-700 w-12 h-12 rounded-full flex items-center justify-center text-xl flex-shrink-0">
+      😊
+    </button>
+
+    <!-- Поле за писане -->
+    <input type="text" id="message-input"
+           class="flex-1 bg-gray-800 rounded-full px-5 py-3 focus:outline-none"
+           placeholder="Напиши съобщение...">
+    
+    <!-- Кръгъл бутон със стрелка (Telegram стил) -->
+    <button onclick="sendMessage()"
+            class="bg-blue-600 hover:bg-blue-700 w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
+      <i class="fas fa-paper-plane text-white text-lg"></i>
+    </button>
+  </div>
+</div>
     </div>
   </div>
 
@@ -104,71 +85,33 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const auth = firebase.auth();
     const messagesRef = db.ref('messages');
-
-    // Позволени имейли
-    const allowedEmails = [
-      "mariabudakova@hotmail.co.uk",
-      "sonya.kirilova.kirby@gmail.com",
-      "newuserredminote8@gmail.com"
-    ];
-
-    const loginScreen = document.getElementById('login-screen');
-    const chatScreen = document.getElementById('chat-screen');
     const messagesDiv = document.getElementById('messages');
     const input = document.getElementById('message-input');
     const emojiPanel = document.getElementById('emoji-panel');
     const emojiBtn = document.getElementById('emoji-btn');
-    const userInfo = document.getElementById('user-info');
 
-    let currentUser = null;
-
-    function loginWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .catch(error => {
-          console.error(error);
-          alert("Грешка при вход: " + error.message);
-        });
-    }
-
-    function logout() {
-      auth.signOut();
-    }
-
-    // Проверка след вход
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        // Проверяваме дали имейлът е позволен
-        if (!allowedEmails.includes(user.email)) {
-          alert("Нямаш достъп до този чат.\nСамо семейството може да влиза.");
-          auth.signOut();
-          return;
-        }
-
-        currentUser = user;
-        loginScreen.classList.add('hidden');
-        chatScreen.classList.remove('hidden');
-        chatScreen.classList.add('flex');
-        userInfo.textContent = user.displayName || user.email;
-      } else {
-        currentUser = null;
-        loginScreen.classList.remove('hidden');
-        chatScreen.classList.add('hidden');
-        chatScreen.classList.remove('flex');
-        messagesDiv.innerHTML = '';
-      }
-    });
-
-    // Емоджи
+    // Емоджита
     const emojis = [
-      '😀','😂','🤣','😊','😍','🥰','😘','😜','😎','🤔',
-      '😴','😭','😡','🥺','😅','😔','😢','🤭','🤫','🤗',
-      '👍','👎','👏','🙏','💪','👋','🤝','❤️','💔','🔥',
-      '🏆','🚗','✈️','☕','🎄','🏠','💰','🎁','⭐','🎉',
-      '🎊','💯','✅','❌','✨','🌸','💄','💅','👗','👠',
-      '💖','💗','💓','💞','💝','🦋','🌺','🌻','🌹','🎀',
+      // Лица и емоции
+      '😀','😂','🤣','😊','😍',
+      '🥰','😘','😜','😎','🤔',
+      '😴','😭','😡','🥺','😅',
+      '😔','😢','🤭','🤫','🤗',
+
+      // Жестове
+      '👍','👎','👏','🙏','💪',
+      '👋','🤝','❤️','💔','🔥',
+
+      // Предмети и символи
+      '🏆','🚗','✈️','☕','🎄',
+      '🏠','💰','🎁','⭐','🎉',
+      '🎊','💯','✅','❌','✨',
+      '🌸','💄','💅','👗','👠',
+
+      // Женски & цветни
+      '💖','💗','💓','💞','💝',
+      '🦋','🌺','🌻','🌹','🎀',
       '💋','👑','💎','🪞','🩷'
     ];
 
@@ -208,7 +151,7 @@
     }
 
     function formatMessageText(text) {
-      return text.replace(/(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu,
+      return text.replace(/(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu, 
         '<span class="text-2xl leading-none">$1</span>');
     }
 
@@ -224,10 +167,11 @@
     function addMessage(key, data) {
       if (!data || !data.username || !data.text) return;
 
-      const isMine = currentUser && (data.uid === currentUser.uid);
+      const isMine = data.username === "Семейство";
       const msg = document.createElement('div');
       msg.id = 'msg-' + key;
       msg.className = `flex ${isMine ? 'justify-end' : 'justify-start'}`;
+
       msg.innerHTML = `
         <div class="relative group ${isMine ? 'bg-blue-600' : 'bg-gray-700'} max-w-md px-4 py-3 rounded-2xl rounded-${isMine ? 'tr' : 'tl'}-none">
           <p class="text-xs opacity-75">${data.username}</p>
@@ -235,7 +179,7 @@
           <div class="flex items-center justify-between mt-1">
             <p class="text-[10px] opacity-60">${formatDate(data.timestamp)}</p>
             ${isMine ? `
-              <button onclick="deleteMessage('${key}')"
+              <button onclick="deleteMessage('${key}')" 
                       class="ml-3 text-xs opacity-0 group-hover:opacity-100 transition-opacity text-red-300 hover:text-red-100"
                       title="Изтрий">
                 <i class="fas fa-trash-alt"></i>
@@ -259,17 +203,11 @@
     }
 
     function sendMessage() {
-      if (!currentUser) {
-        alert("Трябва да си влязъл!");
-        return;
-      }
-
       const text = input.value.trim();
       if (!text) return;
 
       messagesRef.push({
-        username: currentUser.displayName || currentUser.email || "Анонимен",
-        uid: currentUser.uid,
+        username: "Семейство",
         text: text,
         timestamp: Date.now()
       }).then(() => {
